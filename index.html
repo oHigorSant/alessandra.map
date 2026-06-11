@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MAP — Método de Alta Performance · Alessandra Salucci</title>
+<link rel="stylesheet" href="https://use.typekit.net/pft6rxt.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+/* ════════════════════════════════════════════════════════
+   TOKENS — Design System Alessandra Salucci
+   ════════════════════════════════════════════════════════ */
+:root{
+  /* Cores */
+  --p:#9D2D19; --pd:#5C1F14; --pl:#ED7F6C;
+  --pw:#E2AA80; --pg:#FFBC7D; --pt:#997E69;
+  --d2:#25241E; --g7:#54595F; --g5:#7A7A7A;
+  --g2:#E9E9E9; --g1:#DDDDDD;
+  --bg:#F8F5F2; --surface:#FFFFFF;
+  --border:rgba(0,0,0,.07); --border-md:rgba(0,0,0,.11);
+
+  /* Gradientes oficiais */
+  --grd1:linear-gradient(90deg,#997E69,#E2AA80,#997E69);
+  --grd2:linear-gradient(90deg,#9D2D19,#ED7F6C,#9D2D19);
+  --grda:linear-gradient(to right,#9D2D19,#ED7F6C,#9D2D19);
+  --glow:radial-gradient(ellipse at center,rgba(157,45,25,.20) 0%,transparent 68%);
+
+  /* Tipografia */
+  --fd:"quincy-cf",Georgia,serif;
+  --fb:"montserrat","Helvetica Neue",Arial,sans-serif;
+
+  /* Escala fluida — única fonte de verdade */
+  --fs-h1:clamp(28px,3.5vw,48px);
+  --fs-h2:clamp(26px,3vw,44px);
+  --fs-h3:clamp(19px,1.6vw,24px);
+  --fs-lead:clamp(15px,1.15vw,17px);
+  --fs-body:clamp(14px,1.05vw,15px);
+  --fs-sm:13px;
+  --fs-label:11px;
+
+  /* Layout */
+  --container:1360px;
+  --gutter:clamp(20px,4.5vw,64px);
+  --sec-y:clamp(64px,9vw,120px);
+  --col-gap:clamp(40px,5.5vw,96px);
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --nav-h:64px;
+  --r:24px;
+}
+
+/* ════════════════════════════════════════════════════════
+   RESET
+   ════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--d2);font-family:var(--fb);font-size:var(--fs-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+
+/* ════════════════════════════════════════════════════════
+   UTILITÁRIOS
+   ════════════════════════════════════════════════════════ */
+.wrap{max-width:var(--container);margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter)}
+.sec{padding-top:var(--sec-y);padding-bottom:var(--sec-y)}
+.gt2{background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gt1{background:var(--grd1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Grid de 2 colunas */
+.g2c{display:grid;grid-template-columns:1fr 1fr;gap:var(--col-gap);align-items:center}
+.g2c--text{grid-template-columns:1.08fr .92fr}
+
+/* Eyebrow / label de seção */
+.lbl{display:inline-flex;align-items:center;gap:10px;font-size:var(--fs-label);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--pt);margin-bottom:18px}
+.lbl::before{content:'';width:26px;height:1.5px;background:var(--grd2);border-radius:2px}
+.lbl--center{justify-content:center}
+.lbl--center::after{content:'';width:26px;height:1.5px;background:var(--grd2);border-radius:2px}
+
+/* Headings */
+.h1{font-family:var(--fd);font-size:var(--fs-h1);font-weight:600;line-height:1.07;letter-spacing:-.02em}
+.h2{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;line-height:1.10;letter-spacing:-.015em;color:var(--d2)}
+.lead{font-size:var(--fs-lead);line-height:1.75;color:var(--g7)}
+.body{font-size:var(--fs-body);line-height:1.78;color:var(--g7)}
+
+strong.hi{color:var(--p);font-weight:600}
+strong.hd{color:var(--d2);font-weight:600}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--fb);font-weight:700;letter-spacing:.10em;text-transform:uppercase;text-decoration:none;border:none;cursor:pointer;line-height:1;transition:transform .25s var(--ease),box-shadow .25s var(--ease);white-space:nowrap}
+.btn-cta{background:var(--grda);color:#fff;padding:16px 38px;font-size:12px;border-radius:9999px;box-shadow:0 6px 26px rgba(157,45,25,.38)}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 12px 38px rgba(157,45,25,.52)}
+.btn-cta:active{transform:scale(.97)}
+.btn-cta-lg{padding:19px 50px;font-size:13px}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .8s var(--ease) both}
+.d1{animation-delay:.10s}.d2{animation-delay:.20s}.d3{animation-delay:.30s}.d4{animation-delay:.40s}
+
+/* ════════════════════════════════════════════════════════
+   PLACEHOLDERS DE FOTO — espaços reservados
+   Cada um indica a proporção ideal para a foto final
+   ════════════════════════════════════════════════════════ */
+.ph{position:relative;border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;
+  background:linear-gradient(150deg,rgba(157,45,25,.05) 0%,rgba(226,170,128,.10) 55%,rgba(153,126,105,.08) 100%)}
+.ph::before{content:'';position:absolute;inset:14px;border:1.5px dashed rgba(157,45,25,.28);border-radius:calc(var(--r) - 8px);pointer-events:none}
+.ph-ico{width:58px;height:58px;border-radius:50%;background:rgba(157,45,25,.08);border:1px solid rgba(157,45,25,.18);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--p);opacity:.75}
+.ph-label{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--pt)}
+.ph-name{font-family:var(--fd);font-size:17px;font-weight:600;color:var(--d2);opacity:.85}
+.ph-size{font-size:11px;color:var(--g5);font-family:monospace;letter-spacing:.04em}
+
+/* Variante para fundos escuros */
+.ph--dark{background:linear-gradient(150deg,rgba(255,255,255,.04) 0%,rgba(226,170,128,.07) 55%,rgba(157,45,25,.10) 100%)}
+.ph--dark::before{border-color:rgba(226,170,128,.30)}
+.ph--dark .ph-ico{background:rgba(226,170,128,.08);border-color:rgba(226,170,128,.22);color:var(--pw)}
+.ph--dark .ph-name{color:rgba(255,255,255,.85)}
+.ph--dark .ph-size{color:rgba(255,255,255,.38)}
+
+/* ════════════════════════════════════════════════════════
+   NAV
+   ════════════════════════════════════════════════════════ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(37,36,30,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-i{max-width:var(--container);margin:0 auto;padding:0 var(--gutter);height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.nav-logo{font-family:var(--fd);font-size:18px;font-weight:600;color:#fff;text-decoration:none;letter-spacing:-.01em;white-space:nowrap}
+.nav-logo span:first-child{background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-tag{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pt);background:rgba(153,126,105,.12);border:1px solid rgba(153,126,105,.22);padding:5px 16px;border-radius:9999px;white-space:nowrap}
+.nav-btn{display:inline-flex;align-items:center;gap:7px;background:var(--grda);color:#fff;padding:10px 24px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;transition:transform .2s var(--ease),box-shadow .2s var(--ease);box-shadow:0 3px 14px rgba(157,45,25,.30);white-space:nowrap}
+.nav-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(157,45,25,.48)}
+
+/* ════════════════════════════════════════════════════════
+   01 · HERO — escuro, copy + espaço de foto
+   ════════════════════════════════════════════════════════ */
+.hero{background:var(--d2);position:relative;overflow:hidden;padding-top:var(--nav-h)}
+.hero::before{content:'';position:absolute;inset:0;background:var(--glow);pointer-events:none}
+.hero-inner{max-width:var(--container);margin:0 auto;padding:clamp(36px,4vw,56px) var(--gutter);display:grid;grid-template-columns:1.05fr .95fr;gap:var(--col-gap);align-items:center;position:relative;z-index:1}
+
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(226,170,128,.10);border:1px solid rgba(226,170,128,.24);color:var(--pw);font-size:10px;font-weight:600;letter-spacing:.20em;text-transform:uppercase;padding:6px 16px;border-radius:9999px;margin-bottom:22px}
+.hero-badge i{font-size:6px;color:var(--pl);animation:blink 2s ease infinite}
+
+.hero h1{font-family:var(--fd);font-size:var(--fs-h1);font-weight:600;color:#fff;line-height:1.07;letter-spacing:-.02em;margin-bottom:18px}
+.hero h1 em{font-style:normal;background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.hero-sub{font-size:var(--fs-lead);color:rgba(255,255,255,.60);line-height:1.72;margin-bottom:28px;max-width:56ch}
+.hero-sub strong{color:var(--pw);font-weight:600}
+
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px 20px;margin-bottom:26px}
+.hero-urgency{display:inline-flex;align-items:flex-start;gap:9px;background:rgba(255,188,125,.06);border:1px solid rgba(255,188,125,.15);border-radius:10px;padding:10px 14px;font-size:12px;line-height:1.5;color:rgba(255,255,255,.45);max-width:54ch}
+.hero-urgency i{color:var(--pg);font-size:12px;margin-top:1px}
+.hero-urgency strong{color:var(--pg);font-weight:600}
+
+.hero-stats{display:flex;gap:clamp(24px,3vw,44px);padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
+.stat-n{font-family:var(--fd);font-size:clamp(22px,2vw,30px);font-weight:600;line-height:1;background:var(--grd1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-l{font-size:11px;color:rgba(255,255,255,.34);letter-spacing:.04em;line-height:1.45;margin-top:5px}
+
+/* Espaço de foto do hero — proporção retrato, altura casada com o copy */
+.hero-ph{aspect-ratio:4/4.4;max-height:580px;width:100%}
+
+/* ════════════════════════════════════════════════════════
+   02 · DOR — claro
+   ════════════════════════════════════════════════════════ */
+.dor-sec{background:var(--bg)}
+.dor-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--col-gap);align-items:start}
+
+.dor-left h2{margin-bottom:22px}
+.dor-story{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--p);border-radius:0 18px 18px 0;padding:clamp(18px,2vw,26px) clamp(20px,2.2vw,30px);margin-bottom:16px}
+.dor-story p{font-size:var(--fs-body);color:var(--g7);line-height:1.76}
+.dor-story p+p{margin-top:12px}
+.dor-story strong{color:var(--p);font-weight:600}
+.dor-alert{background:rgba(157,45,25,.05);border:1px solid rgba(157,45,25,.13);border-radius:14px;padding:16px 22px;font-size:var(--fs-body);color:var(--g7);line-height:1.68;margin-bottom:28px}
+.dor-alert strong{color:var(--p);font-weight:600}
+
+.cycle-label{font-size:var(--fs-label);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--pt);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.cycle-label::after{content:'';flex:1;height:1px;background:var(--border-md)}
+.pain-list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.04)}
+.pain-item{display:flex;align-items:flex-start;gap:16px;padding:clamp(14px,1.6vw,20px) clamp(18px,2vw,26px);border-bottom:1px solid var(--border);transition:background .2s}
+.pain-item:last-child{border-bottom:none}
+.pain-item:hover{background:rgba(157,45,25,.025)}
+.pain-num{width:30px;height:30px;border-radius:50%;background:rgba(157,45,25,.08);border:1px solid rgba(157,45,25,.18);color:var(--p);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pain-txt{font-size:var(--fs-body);color:var(--g7);line-height:1.64;padding-top:4px}
+.pain-txt strong{color:var(--d2);font-weight:600}
+
+/* ════════════════════════════════════════════════════════
+   03 · QUEBRA DE CRENÇA — escuro
+   ════════════════════════════════════════════════════════ */
+.crenca-sec{background:var(--d2);position:relative;overflow:hidden}
+.crenca-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(157,45,25,.14) 0%,transparent 55%);pointer-events:none}
+.crenca-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--col-gap);align-items:center;position:relative;z-index:1}
+
+.crenca-sec .h2{color:#fff}
+.crenca-sec .body{color:rgba(255,255,255,.64)}
+.crenca-sec .body strong.hi{color:var(--pl)}
+.crenca-sec .body strong.hd{color:#fff}
+.crenca-sec .body em{color:var(--pw);font-style:italic}
+
+.ticket-row{display:flex;gap:12px;margin:26px 0}
+.t-pill{flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(237,127,108,.26);border-radius:16px;padding:clamp(16px,1.8vw,24px) 10px;transition:transform .25s var(--ease),border-color .25s}
+.t-pill:hover{transform:translateY(-3px);border-color:rgba(237,127,108,.50)}
+.t-pill-v{font-family:var(--fd);font-size:clamp(22px,2.2vw,30px);font-weight:600;background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.t-pill-l{font-size:11px;color:var(--pt);margin-top:6px}
+
+.contrast-stack{display:flex;flex-direction:column;gap:16px}
+.cc{border-radius:20px;padding:clamp(22px,2.4vw,30px) clamp(24px,2.6vw,32px);border:1px solid}
+.cc.bad{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08)}
+.cc.good{background:linear-gradient(145deg,rgba(157,45,25,.16),rgba(157,45,25,.08));border-color:rgba(237,127,108,.30);position:relative;overflow:hidden}
+.cc.good::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grda)}
+.cc-tag{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.cc-tag.neg{color:rgba(255,255,255,.36)}
+.cc-tag.pos{color:var(--pl)}
+.cc-head{font-family:var(--fd);font-size:clamp(18px,1.6vw,22px);font-weight:600;color:#fff;margin-bottom:8px}
+.cc.bad .cc-head{color:rgba(255,255,255,.78)}
+.cc-desc{font-size:var(--fs-sm);line-height:1.66;color:rgba(255,255,255,.50)}
+.cc.good .cc-desc{color:rgba(255,255,255,.62)}
+
+/* ════════════════════════════════════════════════════════
+   04 · SOLUÇÃO MAP — branco
+   ════════════════════════════════════════════════════════ */
+.sol-sec{background:var(--surface);border-top:1px solid var(--border)}
+.sol-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--col-gap);align-items:center}
+
+.map-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(157,45,25,.06);border:1px solid rgba(157,45,25,.18);color:var(--p);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:6px 16px;border-radius:9999px;margin-bottom:20px}
+.sol-title{font-family:var(--fd);font-size:var(--fs-h1);font-weight:600;color:var(--d2);line-height:1.05;margin-bottom:8px;letter-spacing:-.02em}
+.sol-subtitle{font-family:var(--fd);font-size:clamp(16px,1.5vw,21px);color:var(--pt);font-weight:400;font-style:italic;margin-bottom:24px}
+.sol-body{font-size:var(--fs-lead);color:var(--g7);line-height:1.80;margin-bottom:18px;max-width:58ch}
+.sol-body strong{color:var(--p);font-weight:600}
+
+.days-row{display:flex;gap:12px;margin:28px 0}
+.d-pill{flex:1;text-align:center;background:linear-gradient(145deg,rgba(157,45,25,.05),rgba(226,170,128,.08));border:1px solid rgba(157,45,25,.14);border-radius:16px;padding:clamp(16px,1.8vw,24px) 10px;transition:transform .25s var(--ease),border-color .25s,box-shadow .25s}
+.d-pill:hover{border-color:rgba(157,45,25,.30);transform:translateY(-3px);box-shadow:0 10px 28px rgba(157,45,25,.12)}
+.d-pill-n{font-family:var(--fd);font-size:clamp(22px,2.2vw,30px);font-weight:600;background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.d-pill-l{font-size:11px;color:var(--pt);margin-top:6px;line-height:1.4}
+
+.sol-bridge{font-size:var(--fs-body);color:var(--g7);line-height:1.76;margin-bottom:30px;max-width:58ch}
+.sol-bridge strong{color:var(--p);font-weight:600}
+
+.sol-ph{aspect-ratio:4/5;max-height:600px;width:100%}
+
+/* ════════════════════════════════════════════════════════
+   05 · BENEFÍCIOS — quente claro, 4 colunas
+   ════════════════════════════════════════════════════════ */
+.ben-sec{background:linear-gradient(160deg,#FDEBD9 0%,#F5DEC7 100%);border-top:1px solid rgba(157,45,25,.10)}
+.ben-header{text-align:center;max-width:760px;margin:0 auto clamp(36px,4.5vw,56px)}
+.ben-title{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;color:var(--d2);line-height:1.10;letter-spacing:-.015em}
+
+.ben-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,1.6vw,22px);margin-bottom:clamp(36px,4.5vw,52px)}
+.ben-card{background:var(--surface);border:1px solid rgba(0,0,0,.06);border-radius:22px;padding:clamp(22px,2.2vw,30px) clamp(20px,2vw,26px);position:relative;overflow:hidden;transition:transform .28s var(--ease),box-shadow .28s var(--ease),border-color .28s;display:flex;flex-direction:column}
+.ben-card:hover{transform:translateY(-6px);box-shadow:0 22px 52px rgba(0,0,0,.10);border-color:rgba(157,45,25,.16)}
+.ben-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grda)}
+.ben-ico{width:44px;height:44px;border-radius:12px;background:var(--grda);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;margin-bottom:16px;box-shadow:0 4px 16px rgba(157,45,25,.28)}
+.ben-tag{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pl);margin-bottom:8px}
+.ben-name{font-family:var(--fd);font-size:clamp(17px,1.4vw,20px);font-weight:600;color:var(--d2);line-height:1.22;margin-bottom:10px}
+.ben-desc{font-size:var(--fs-sm);color:var(--g5);line-height:1.70}
+.ben-desc strong{color:var(--p);font-weight:600}
+.ben-cta{text-align:center}
+
+/* ════════════════════════════════════════════════════════
+   06 · AUTORIDADE — cream
+   ════════════════════════════════════════════════════════ */
+.auth-sec{background:var(--bg);border-top:1px solid var(--border)}
+.auth-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:var(--col-gap);align-items:center}
+
+.auth-ph{aspect-ratio:4/5;max-height:580px;width:100%}
+
+.auth-name{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.06;margin-bottom:8px;display:inline-block}
+.auth-role{font-size:var(--fs-label);color:var(--pt);letter-spacing:.16em;text-transform:uppercase;margin-bottom:22px}
+.auth-bio{font-size:var(--fs-lead);color:var(--g7);line-height:1.78;margin-bottom:16px;max-width:60ch}
+.auth-bio strong{color:var(--p);font-weight:600}
+
+.cred-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.cred{display:inline-flex;align-items:center;gap:7px;background:rgba(157,45,25,.05);border:1px solid rgba(157,45,25,.16);color:var(--p);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border-radius:9999px}
+.cred i{font-size:9px}
+
+/* Provas — espaço reservado citado no PDF */
+.proofs{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:clamp(16px,1.8vw,22px);margin-bottom:28px;box-shadow:0 4px 20px rgba(0,0,0,.04)}
+.proofs-ttl{font-size:13px;font-weight:600;color:var(--d2);margin-bottom:3px}
+.proofs-sub{font-size:11px;color:var(--g5);font-style:italic;margin-bottom:14px}
+.proofs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.proof-slot{background:var(--bg);border:1.5px dashed rgba(157,45,25,.20);border-radius:12px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--pt);font-size:10px;text-align:center;padding:8px;line-height:1.4}
+.proof-slot i{font-size:17px;color:rgba(157,45,25,.30)}
+
+/* ════════════════════════════════════════════════════════
+   07 · OFERTA — escuro
+   ════════════════════════════════════════════════════════ */
+.offer-sec{background:var(--d2);position:relative;overflow:hidden}
+.offer-sec::before{content:'';position:absolute;inset:0;background:var(--glow);pointer-events:none}
+.offer-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:var(--col-gap);align-items:center;position:relative;z-index:1}
+
+.offer-eyebrow{font-size:var(--fs-label);font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--pt);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.offer-eyebrow::before{content:'';width:26px;height:1.5px;background:var(--grd2);opacity:.6;border-radius:2px}
+.offer-q{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;color:#fff;line-height:1.10;margin-bottom:20px;letter-spacing:-.015em}
+.offer-q span{background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.offer-lead{font-size:var(--fs-body);color:rgba(255,255,255,.52);line-height:1.74;margin-bottom:14px;max-width:60ch}
+.offer-lead strong{color:rgba(255,255,255,.78);font-weight:600}
+.offer-receive{font-size:var(--fs-label);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--pw);margin:24px 0 14px}
+
+.offer-items{display:flex;flex-direction:column;gap:10px}
+.offer-item{display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 18px;transition:background .2s,border-color .2s}
+.offer-item:hover{background:rgba(255,255,255,.06);border-color:rgba(237,127,108,.20)}
+.offer-ico{width:34px;height:34px;border-radius:9px;background:rgba(237,127,108,.14);border:1px solid rgba(237,127,108,.24);color:var(--pl);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.offer-item-body{font-size:var(--fs-sm);color:rgba(255,255,255,.55);line-height:1.55}
+.offer-item-body strong{display:block;font-size:14px;font-weight:600;color:#fff;margin-bottom:2px}
+
+/* Price card */
+.price-card{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(226,170,128,.18);border-radius:26px;padding:clamp(28px,3vw,40px);overflow:hidden}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grd2)}
+.price-orig{font-size:13px;color:rgba(255,255,255,.30);margin-bottom:8px}
+.price-orig s{color:rgba(255,255,255,.30)}
+.price-tag{font-size:var(--fs-label);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pg);margin-bottom:10px}
+.price-val{font-family:var(--fd);font-size:clamp(38px,4vw,58px);font-weight:600;line-height:1;background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.price-cond{font-size:13px;color:rgba(255,255,255,.38);margin-bottom:24px}
+.price-note{font-size:12px;color:rgba(255,255,255,.32);font-style:italic;margin-top:18px;line-height:1.66}
+.price-lock{font-size:11px;color:rgba(255,255,255,.26);margin-top:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* ════════════════════════════════════════════════════════
+   08 · GARANTIA — branco, centrado
+   ════════════════════════════════════════════════════════ */
+.guar-sec{background:var(--surface);border-top:1px solid var(--border)}
+.guar-inner{max-width:820px;margin:0 auto;text-align:center}
+.guar-shield{width:clamp(72px,7vw,92px);height:clamp(72px,7vw,92px);border-radius:50%;background:linear-gradient(145deg,rgba(157,45,25,.07),rgba(226,170,128,.10));border:2px solid rgba(157,45,25,.16);display:flex;align-items:center;justify-content:center;font-size:clamp(26px,3vw,34px);color:var(--p);margin:0 auto 28px;box-shadow:0 0 0 12px rgba(157,45,25,.04),0 0 0 24px rgba(157,45,25,.02)}
+.guar-title{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;color:var(--d2);margin-bottom:18px;letter-spacing:-.015em}
+.guar-body{font-size:var(--fs-lead);color:var(--g7);line-height:1.82;margin-bottom:32px;max-width:64ch;margin-left:auto;margin-right:auto}
+.guar-body strong{color:var(--p);font-weight:600}
+.guar-pills{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:38px}
+.gpill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,148,92,.06);border:1px solid rgba(0,148,92,.18);color:#00845a;font-size:12px;font-weight:600;letter-spacing:.04em;padding:8px 18px;border-radius:9999px}
+.gpill i{font-size:10px}
+
+/* ════════════════════════════════════════════════════════
+   09 · ESCASSEZ — quente claro, centrado
+   ════════════════════════════════════════════════════════ */
+.scar-sec{background:linear-gradient(160deg,#FDE8D5 0%,#F9DCC6 100%);border-top:1px solid rgba(157,45,25,.12);border-bottom:1px solid rgba(157,45,25,.12)}
+.scar-inner{max-width:880px;margin:0 auto;text-align:center}
+.scar-badge{display:inline-flex;align-items:center;gap:8px;background:var(--p);color:#fff;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:9px 22px;border-radius:9999px;margin-bottom:30px;box-shadow:0 4px 18px rgba(157,45,25,.38)}
+.scar-badge i{font-size:7px;animation:blink 1.4s ease infinite}
+.scar-title{font-family:var(--fd);font-size:var(--fs-h2);font-weight:600;color:var(--d2);line-height:1.10;margin-bottom:22px;letter-spacing:-.015em}
+.scar-title span{background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.scar-body{font-size:var(--fs-lead);color:var(--g7);line-height:1.80;margin-bottom:18px;max-width:68ch;margin-left:auto;margin-right:auto}
+.scar-body strong{color:var(--p);font-weight:600}
+
+.vagas-row{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:34px 0 10px}
+.vaga{width:clamp(24px,2.4vw,30px);height:clamp(24px,2.4vw,30px);border-radius:7px;transition:transform .2s}
+.vaga.x{background:rgba(157,45,25,.13);border:1px solid rgba(157,45,25,.20)}
+.vaga.o{background:var(--grda);box-shadow:0 3px 10px rgba(157,45,25,.32)}
+.vaga.o:hover{transform:scale(1.15)}
+.vagas-lbl{font-size:12px;color:var(--g5);font-style:italic;margin-bottom:36px}
+
+/* ════════════════════════════════════════════════════════
+   10 · CTA FINAL — terracota
+   ════════════════════════════════════════════════════════ */
+.final-sec{background:linear-gradient(145deg,#5C1F14 0%,#9D2D19 60%,#7a2315 100%);position:relative;overflow:hidden}
+.final-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 65% 35%,rgba(255,255,255,.09) 0%,transparent 60%);pointer-events:none}
+.final-inner{max-width:860px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.final-eyebrow{font-size:var(--fs-label);font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:rgba(255,255,255,.50);margin-bottom:24px}
+.final-title{font-family:var(--fd);font-size:var(--fs-h1);font-weight:600;color:#fff;line-height:1.10;margin-bottom:22px;letter-spacing:-.02em}
+.final-title strong{font-weight:600;color:var(--pg)}
+.final-body{font-size:var(--fs-lead);color:rgba(255,255,255,.66);line-height:1.78;margin-bottom:14px;max-width:60ch;margin-left:auto;margin-right:auto}
+.final-body2{font-size:var(--fs-body);color:rgba(255,255,255,.48);line-height:1.72;margin-bottom:42px}
+.final-btn{background:#fff;color:var(--p);padding:clamp(18px,2vw,23px) clamp(44px,5vw,64px);font-size:clamp(12px,1.1vw,14px);border-radius:9999px;box-shadow:0 10px 36px rgba(0,0,0,.22);font-weight:700;letter-spacing:.10em;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px;transition:transform .28s var(--ease),box-shadow .28s var(--ease);text-decoration:none}
+.final-btn:hover{transform:translateY(-3px);box-shadow:0 18px 50px rgba(0,0,0,.30)}
+.final-cta-note{font-size:12px;color:rgba(255,255,255,.30);margin-top:22px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* ════════════════════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════════════════════ */
+.footer{background:rgba(37,36,30,.97);border-top:1px solid rgba(255,255,255,.06);padding:56px 0;text-align:center}
+.footer-logo{font-family:var(--fd);font-size:22px;font-weight:600;margin-bottom:10px;color:#fff}
+.footer-logo span{background:var(--grd2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.footer-div{width:44px;height:1.5px;background:var(--grd2);margin:18px auto;border-radius:2px}
+.footer-txt{font-size:11px;color:rgba(255,255,255,.24);letter-spacing:.04em;line-height:2}
+
+/* ════════════════════════════════════════════════════════
+   ANIMAÇÕES DE SCROLL
+   ════════════════════════════════════════════════════════ */
+.anim{opacity:0;transform:translateY(20px);transition:opacity .68s var(--ease),transform .68s var(--ease)}
+.anim.visible{opacity:1;transform:translateY(0)}
+.anim-d1{transition-delay:.07s}
+.anim-d2{transition-delay:.14s}
+.anim-d3{transition-delay:.21s}
+.anim-d4{transition-delay:.28s}
+
+/* ════════════════════════════════════════════════════════
+   RESPONSIVO
+   ════════════════════════════════════════════════════════
+   Breakpoints: 1100 · 880 · 640 · 440
+   ════════════════════════════════════════════════════════ */
+
+/* ── Notebook / tablet landscape ─────────────────────── */
+@media(max-width:1100px){
+  .ben-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-inner{grid-template-columns:1fr .85fr;gap:40px}
+  .hero-ph{aspect-ratio:4/5;max-height:520px}
+}
+
+/* ── Tablet portrait ─────────────────────────────────── */
+@media(max-width:880px){
+  .hero-inner{grid-template-columns:1fr;gap:40px;padding-top:48px;padding-bottom:48px}
+  .hero-ph{aspect-ratio:16/10;max-height:420px;order:-1}
+  .hero h1{max-width:24ch}
+
+  .dor-grid,.crenca-grid,.sol-grid,.auth-grid,.offer-grid{grid-template-columns:1fr;gap:44px}
+
+  /* Imagens nas seções: proporção paisagem, mais baixas */
+  .sol-ph{aspect-ratio:16/10;max-height:420px}
+  .auth-ph{aspect-ratio:16/10;max-height:420px}
+  .auth-grid .auth-ph{order:-1}
+
+  .proofs-grid{grid-template-columns:repeat(4,1fr)}
+  .price-card{max-width:560px;margin:0 auto;width:100%}
+}
+
+/* ── Mobile ──────────────────────────────────────────── */
+@media(max-width:640px){
+  .nav-tag{display:none}
+  .hero-ph{aspect-ratio:4/3;max-height:340px}
+  .hero-stats{flex-wrap:wrap;gap:18px 28px}
+  .hero-actions{flex-direction:column;align-items:stretch}
+  .hero-actions .btn-cta{width:100%}
+  .hero-urgency{max-width:none}
+
+  .ben-grid{grid-template-columns:1fr}
+  .ticket-row,.days-row{gap:8px}
+  .proofs-grid{grid-template-columns:repeat(2,1fr)}
+  .guar-pills{gap:8px}
+  .vagas-row{gap:5px}
+}
+
+/* ── Mobile pequeno ≤400px ───────────────────────────── */
+@media(max-width:400px){
+  :root{
+    --gutter:16px;
+    --sec-y:52px;
+    --fs-h1:25px;
+    --fs-h2:23px;
+    --fs-lead:14px;
+    --fs-body:13.5px;
+  }
+
+  /* NAV — compacta, sem estourar */
+  .nav-logo{font-size:16px}
+  .nav-logo-ext{display:none}
+  .nav-btn{padding:9px 16px;font-size:9px;letter-spacing:.08em}
+  .nav-i{gap:12px}
+
+  /* HERO */
+  .hero-inner{padding-top:28px;padding-bottom:32px;gap:28px}
+  .hero-ph{max-height:280px}
+  .hero-badge{font-size:9px;letter-spacing:.14em;padding:5px 12px;margin-bottom:16px}
+  .hero h1{margin-bottom:12px}
+  .hero-sub{margin-bottom:18px}
+  .hero-urgency{font-size:11px;padding:9px 12px}
+  .hero-stats{gap:14px 20px;padding-top:16px}
+  .stat-n{font-size:21px}
+  .stat-l{font-size:10px}
+  .stat-l br{display:none}
+
+  /* BOTÕES — quebram linha em vez de estourar */
+  .btn{white-space:normal;line-height:1.35;text-align:center}
+  .btn-cta{width:100%;padding:15px 20px;font-size:11px;letter-spacing:.08em}
+  .btn-cta-lg{padding:16px 22px;font-size:11px}
+  .final-btn{width:100%;justify-content:center;padding:17px 22px;font-size:12px}
+
+  /* PILLS — tickets empilham (R$ 1.000 não cabe em 1/3 de 360px) */
+  .ticket-row{flex-direction:column;gap:8px}
+  .t-pill{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:13px 10px}
+  .t-pill-v{font-size:20px}
+  .t-pill-l{margin-top:0;font-size:11px}
+  /* dias cabem em 3 colunas, só compactam */
+  .d-pill{padding:13px 6px}
+  .d-pill-n{font-size:19px}
+  .d-pill-l{font-size:9px;letter-spacing:0}
+
+  /* CARDS E CAIXAS — padding proporcional à tela */
+  .dor-story{padding:15px 16px}
+  .dor-alert{padding:13px 15px}
+  .pain-item{padding:12px 14px;gap:11px}
+  .pain-num{width:26px;height:26px;font-size:11px}
+  .cc{padding:18px 18px}
+  .ben-card{padding:20px 18px}
+  .ben-ico{width:38px;height:38px;font-size:15px;margin-bottom:12px}
+  .offer-item{padding:12px 13px;gap:11px}
+  .offer-ico{width:30px;height:30px;font-size:12px}
+  .price-card{padding:22px 18px}
+  .price-val{font-size:34px}
+  .proofs{padding:14px}
+  .proof-slot i{font-size:14px}
+
+  /* PLACEHOLDERS — moldura interna menor */
+  .ph{padding:18px}
+  .ph::before{inset:10px}
+  .ph-ico{width:46px;height:46px;font-size:18px}
+  .ph-name{font-size:15px}
+  .ph-size{font-size:10px}
+
+  /* CHIPS E BADGES */
+  .cred{font-size:9px;padding:5px 10px;letter-spacing:.05em}
+  .gpill{font-size:11px;padding:7px 13px}
+  .scar-badge{font-size:9px;padding:8px 16px;letter-spacing:.10em}
+
+  /* GARANTIA / ESCASSEZ / FINAL */
+  .guar-shield{width:64px;height:64px;font-size:24px;margin-bottom:22px}
+  .vaga{width:21px;height:21px;border-radius:5px}
+  .vagas-row{gap:4px}
+  .final-eyebrow{letter-spacing:.18em}
+  .final-cta-note{font-size:11px}
+
+  /* LABELS — tracking menor para caber */
+  .lbl{font-size:10px;letter-spacing:.16em}
+  .cycle-label{font-size:10px;letter-spacing:.12em}
+  .offer-eyebrow{font-size:10px;letter-spacing:.16em}
+  .offer-receive{font-size:10px;letter-spacing:.12em}
+
+  .footer{padding:40px 0}
+  .footer-txt{font-size:10px}
+}
+
+/* ── Micro (≤350px · iPhone SE 1ª ger / Galaxy Fold) ──── */
+@media(max-width:350px){
+  :root{--fs-h1:23px;--fs-h2:21px}
+  .nav-tag{display:none}
+  .nav-btn{padding:8px 12px;font-size:8.5px}
+  .hero-stats{gap:12px}
+  .stat-n{font-size:19px}
+  .days-row{flex-direction:column;gap:8px}
+  .d-pill{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:12px 8px}
+  .d-pill-n{font-size:18px}
+  .d-pill-l{margin-top:0;font-size:10px}
+  .proofs-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .vaga{width:18px;height:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-i">
+    <a class="nav-logo" href="#hero"><span>MAP</span><span class="nav-logo-ext"> · Alessandra Salucci</span></a>
+    <div class="nav-tag">Imersão Presencial · 3 Dias</div>
+    <a class="nav-btn" href="#oferta">
+      <i class="fa-solid fa-bolt" style="font-size:9px"></i>Garantir Vaga
+    </a>
+  </div>
+</nav>
+
+
+<!-- ═══ 01 · HERO ════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-inner">
+
+    <div class="hero-copy">
+      <div class="hero-badge fu">
+        <i class="fa-solid fa-circle"></i>Imersão Presencial · 3 Dias
+      </div>
+      <h1 class="fu d1">
+        Seu trabalho nas mechas é impecável, mas a cliente ainda
+        <em>compara o seu preço com o salão da esquina?</em>
+      </h1>
+      <p class="hero-sub fu d2">
+        O problema não é a sua técnica. <strong>É a sua falta de uma assinatura visual.</strong>
+        Enquanto você continuar sendo apenas uma executora de técnicas repetidas, você será
+        tratada como uma mercadoria. O MAP é a Imersão de 3 Dias que te ensina a ler a
+        identidade da cliente, criar cores únicas por análise cromática e ditar o seu valor
+        no mercado.
+      </p>
+      <div class="hero-actions fu d3">
+        <a class="btn btn-cta" href="#oferta">
+          <i class="fa-solid fa-pen-nib"></i>Quero Criar Minha Assinatura
+        </a>
+      </div>
+      <div class="hero-urgency fu d3" style="margin-bottom:26px">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span><strong>Atenção:</strong> Vagas estritamente limitadas para a próxima Imersão Presencial de 3 Dias.</span>
+      </div>
+      <div class="hero-stats fu d4">
+        <div class="stat">
+          <div class="stat-n">20 anos</div>
+          <div class="stat-l">de cadeira com<br/>clientes reais</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">3 dias</div>
+          <div class="stat-l">de imersão<br/>presencial</div>
+        </div>
+        <div class="stat">
+          <div class="stat-n">100%</div>
+          <div class="stat-l">garantia de<br/>risco zero</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESPAÇO RESERVADO · FOTO HERO -->
+    <div class="ph ph--dark hero-ph fu d2">
+      <div class="ph-ico"><i class="fa-solid fa-camera"></i></div>
+      <div class="ph-label">Espaço Reservado</div>
+      <div class="ph-name">Foto Hero — Alessandra</div>
+      <div class="ph-size">retrato · proporção 4:4.6 · sugestão 1000×1150px</div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══ 02 · DOR ═════════════════════════════════════════ -->
+<section class="dor-sec sec" id="dor">
+  <div class="wrap">
+    <div class="dor-grid">
+
+      <div class="dor-left">
+        <div class="lbl anim">Identificação da Dor</div>
+        <h2 class="h2 anim anim-d1" style="margin-bottom:22px">
+          A verdade que os cursos tradicionais escondem de você:<br/>
+          <span class="gt2">Técnica perfeita não enche mais agenda.</span>
+        </h2>
+        <div class="dor-story anim anim-d2">
+          <p>Pense no seu último atendimento. Você passou horas em pé. Descoloriu. Matizou. O resultado ficou lindo. Mas quando a cliente foi embora... <strong>ela nunca mais voltou.</strong> Ou pior: ela voltou, mas na hora de mudar o visual, procurou outra profissional mais barata.</p>
+          <p>Isso não acontece porque você errou no tom. Acontece porque faltou o <strong>Encaixe de Identidade</strong>.</p>
+        </div>
+        <div class="dor-alert anim anim-d3">
+          Continuar trabalhando no <strong>"piloto automático"</strong> está custando a sua <strong>saúde física</strong>, a sua <strong>margem de lucro</strong> e o seu <strong>reconhecimento profissional.</strong>
+        </div>
+        <a class="btn btn-cta anim anim-d4" href="#oferta">
+          <i class="fa-solid fa-arrow-up-right-dots"></i>Quero Elevar Meu Valor
+        </a>
+      </div>
+
+      <div class="dor-right">
+        <div class="cycle-label anim">Hoje, você vive presa em um ciclo exaustivo:</div>
+        <div class="pain-list anim anim-d1">
+          <div class="pain-item">
+            <div class="pain-num">1</div>
+            <div class="pain-txt">A cliente traz uma foto do <strong>Pinterest</strong>.</div>
+          </div>
+          <div class="pain-item">
+            <div class="pain-num">2</div>
+            <div class="pain-txt">Você tenta fazer o <strong>"copiar e colar"</strong> no cabelo dela.</div>
+          </div>
+          <div class="pain-item">
+            <div class="pain-num">3</div>
+            <div class="pain-txt">A cor fica bonita, mas <strong>apaga o rosto e a essência</strong> dela.</div>
+          </div>
+          <div class="pain-item">
+            <div class="pain-num">4</div>
+            <div class="pain-txt">Ela sai satisfeita, mas <strong>não impactada</strong>.</div>
+          </div>
+          <div class="pain-item">
+            <div class="pain-num">5</div>
+            <div class="pain-txt">Ela <strong>pechincha o seu preço</strong> porque não enxerga diferença entre você e a concorrência.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 03 · QUEBRA DE CRENÇA ════════════════════════════ -->
+<section class="crenca-sec sec" id="crenca">
+  <div class="wrap">
+    <div class="crenca-grid">
+
+      <div>
+        <div class="lbl anim">Quebra de Crença</div>
+        <h2 class="h2 anim anim-d1" style="margin-bottom:18px">
+          Você não precisa de mais um curso de <span class="gt2">"esfumado de raiz" ou "técnicas de papelote".</span>
+        </h2>
+        <p class="body anim anim-d2" style="margin-bottom:14px">O erro que <strong class="hi">99% das cabeleireiras</strong> cometem é achar que a cliente compra um cabelo loiro, moreno iluminado ou ruivo. Ela não compra o cabelo. <strong class="hd">Ela compra a imagem que aquele cabelo reflete no espelho.</strong></p>
+        <p class="body anim anim-d2">O "copiar e colar" morreu já tem muito tempo... A técnica pela técnica se tornou uma <em>commodity</em> — todo mundo faz igual.</p>
+        <div class="ticket-row anim anim-d3">
+          <div class="t-pill">
+            <div class="t-pill-v">R$ 1.000</div><div class="t-pill-l">por procedimento</div>
+          </div>
+          <div class="t-pill">
+            <div class="t-pill-v">R$ 2.000</div><div class="t-pill-l">por procedimento</div>
+          </div>
+          <div class="t-pill">
+            <div class="t-pill-v">R$ 3.000</div><div class="t-pill-l">por procedimento</div>
+          </div>
+        </div>
+        <p class="body anim anim-d3" style="margin-bottom:28px">O verdadeiro segredo das profissionais que cobram esses valores não está na marca do pó descolorante. Está na <strong class="hi">Percepção e Análise</strong>. Elas não olham para o cabelo. <strong class="hd">Elas leem a mulher.</strong></p>
+        <a class="btn btn-cta anim anim-d4" href="#oferta">
+          <i class="fa-solid fa-lock-open"></i>Garantir Minha Vaga Agora
+        </a>
+      </div>
+
+      <div class="contrast-stack anim anim-d2">
+        <div class="cc bad">
+          <div class="cc-tag neg">✕ &nbsp;A maioria faz</div>
+          <div class="cc-head">Copiar e Colar</div>
+          <div class="cc-desc">Recebe foto do Pinterest → executa → cliente sai satisfeita mas não fidelizada → concorrência por preço → burnout e subvalorização constante.</div>
+        </div>
+        <div class="cc good">
+          <div class="cc-tag pos">✦ &nbsp;O que o MAP entrega</div>
+          <div class="cc-head">Leitura de Identidade</div>
+          <div class="cc-desc">Analisa subtom de pele, contraste pessoal e essência da cliente → cria cor exclusiva → cliente fidelizada → cobrança premium justificada → assinatura reconhecida.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 04 · SOLUÇÃO MAP ═════════════════════════════════ -->
+<section class="sol-sec sec" id="solucao">
+  <div class="wrap">
+    <div class="sol-grid">
+
+      <div>
+        <div class="lbl anim">Apresentação da Solução</div>
+        <div class="map-badge anim anim-d1">
+          <i class="fa-solid fa-feather-pointed" style="font-size:10px"></i>Método de Alta Performance
+        </div>
+        <h2 class="sol-title anim anim-d1">Bem-vinda ao <span class="gt2">MAP</span></h2>
+        <p class="sol-subtitle anim anim-d2">Muito mais que um curso de mechas. Uma formação de Identidade Profissional.</p>
+        <p class="sol-body anim anim-d2">Desenvolvido e validado ao longo de <strong>20 anos na cadeira</strong> com clientes reais, o MAP não forma robôs repetidores de tendências. <strong>O MAP forma profissionais capazes de pensar.</strong></p>
+        <p class="sol-body anim anim-d3">Durante <strong>3 dias de imersão profunda</strong>, você vai dominar a arte de criar cores que abraçam a pele e revelam a identidade. Você vai aprender a analisar o subtom de pele, o contraste pessoal e o comportamento da cliente antes de abrir o primeiro papelote.</p>
+        <div class="days-row anim anim-d3">
+          <div class="d-pill">
+            <div class="d-pill-n">Dia 1</div>
+            <div class="d-pill-l">Leitura de Identidade</div>
+          </div>
+          <div class="d-pill">
+            <div class="d-pill-n">Dia 2</div>
+            <div class="d-pill-l">Análise Cromática</div>
+          </div>
+          <div class="d-pill">
+            <div class="d-pill-n">Dia 3</div>
+            <div class="d-pill-l">Posicionamento Premium</div>
+          </div>
+        </div>
+        <p class="sol-bridge anim anim-d3">É a ponte definitiva entre ser uma "cabeleireira que faz luzes" e se tornar uma <strong>Especialista Premium com assinatura exclusiva.</strong></p>
+        <a class="btn btn-cta anim anim-d4" href="#oferta">
+          <i class="fa-solid fa-feather-pointed"></i>Entrar para o MAP Agora
+        </a>
+      </div>
+
+      <!-- ESPAÇO RESERVADO · FOTO SOLUÇÃO -->
+      <div class="ph sol-ph anim anim-d2">
+        <div class="ph-ico"><i class="fa-solid fa-camera"></i></div>
+        <div class="ph-label">Espaço Reservado</div>
+        <div class="ph-name">Foto MAP — Alessandra em ação</div>
+        <div class="ph-size">retrato · proporção 4:5 · sugestão 960×1200px</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 05 · BENEFÍCIOS ══════════════════════════════════ -->
+<section class="ben-sec sec" id="beneficios">
+  <div class="wrap">
+    <div class="ben-header anim">
+      <div class="lbl lbl--center">Benefícios</div>
+      <h2 class="ben-title">Veja exatamente como o MAP vai <span class="gt2">transformar a sua cadeira:</span></h2>
+    </div>
+
+    <div class="ben-grid">
+      <div class="ben-card anim">
+        <div class="ben-ico"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="ben-tag">Autonomia Total</div>
+        <div class="ben-name">O Fim do "Copiar e Colar"</div>
+        <div class="ben-desc">Pare de suar frio quando a cliente trouxer uma foto impossível. Aprenda a captar o verdadeiro desejo dela e crie cores sob medida, gerando <strong>alívio e segurança absoluta</strong> em cada diagnóstico.</div>
+      </div>
+      <div class="ben-card anim anim-d1">
+        <div class="ben-ico"><i class="fa-solid fa-eye"></i></div>
+        <div class="ben-tag">Autoridade Imediata</div>
+        <div class="ben-name">Análise Cromática na Cadeira</div>
+        <div class="ben-desc">Domine a leitura de contraste, intensidade e harmonia. Quando a cliente ver você analisando a pele dela de forma científica, a percepção de valor sobre o seu serviço <strong>dispara instantaneamente</strong>.</div>
+      </div>
+      <div class="ben-card anim anim-d2">
+        <div class="ben-ico"><i class="fa-solid fa-flask"></i></div>
+        <div class="ben-tag">Execução Cirúrgica</div>
+        <div class="ben-name">Fórmulas Prontas como Base</div>
+        <div class="ben-desc">Receba receitas estruturadas para diferentes perfis e cartelas. Tenha <strong>previsibilidade no resultado</strong> e pare de gastar dinheiro errando misturas no lavatório.</div>
+      </div>
+      <div class="ben-card anim anim-d3">
+        <div class="ben-ico"><i class="fa-solid fa-heart"></i></div>
+        <div class="ben-tag">Fidelização Emocional</div>
+        <div class="ben-name">A Jornada do Atendimento Premium</div>
+        <div class="ben-desc">Do primeiro encantamento na recepção até a venda ativa com elegância. Transforme o seu salão em um refúgio de acolhimento, fazendo com que a cliente se sinta tão única que <strong>o preço se torna um mero detalhe</strong>.</div>
+      </div>
+    </div>
+
+    <div class="ben-cta anim">
+      <a class="btn btn-cta btn-cta-lg" href="#oferta">
+        <i class="fa-solid fa-pen-nib"></i>Quero Criar Minha Assinatura
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 06 · AUTORIDADE ══════════════════════════════════ -->
+<section class="auth-sec sec" id="autoridade">
+  <div class="wrap">
+    <div class="auth-grid">
+
+      <!-- ESPAÇO RESERVADO · FOTO AUTORIDADE -->
+      <div class="ph auth-ph anim">
+        <div class="ph-ico"><i class="fa-solid fa-camera"></i></div>
+        <div class="ph-label">Espaço Reservado</div>
+        <div class="ph-name">Foto Autoridade — Alessandra retrato</div>
+        <div class="ph-size">retrato · proporção 4:5 · sugestão 920×1150px</div>
+      </div>
+
+      <div class="auth-copy">
+        <div class="lbl anim">Provas e Autoridade</div>
+        <h2 class="h2 anim anim-d1" style="margin-bottom:20px">Quem guia a sua <span class="gt2">transformação?</span></h2>
+        <p class="auth-bio anim anim-d2"><strong>Sou Alessandra.</strong> Passei os últimos 20 anos exatamente onde você está hoje: atrás de uma cadeira de salão, atendendo mulheres reais, com dores e desejos reais.</p>
+        <p class="auth-bio anim anim-d2">Eu não criei o MAP em um laboratório. Eu validei cada etapa, cada análise de contraste e cada gatilho de atendimento premium <strong>na trincheira do dia a dia.</strong></p>
+        <div class="cred-row anim anim-d3">
+          <span class="cred"><i class="fa-solid fa-scissors"></i>Especialista em Mechas</span>
+          <span class="cred"><i class="fa-solid fa-palette"></i>Análise Cromática</span>
+          <span class="cred"><i class="fa-solid fa-star"></i>20 Anos de Cadeira</span>
+        </div>
+        <div class="proofs anim anim-d3">
+          <div class="proofs-ttl">Resultados das alunas</div>
+          <div class="proofs-sub">Espaço reservado: 3 a 4 prints reais ou vídeos curtos de alunas que dobraram o ticket médio após aplicar o MAP</div>
+          <div class="proofs-grid">
+            <div class="proof-slot"><i class="fa-regular fa-image"></i>Print / Vídeo 1<br/>1:1</div>
+            <div class="proof-slot"><i class="fa-regular fa-image"></i>Print / Vídeo 2<br/>1:1</div>
+            <div class="proof-slot"><i class="fa-regular fa-image"></i>Print / Vídeo 3<br/>1:1</div>
+            <div class="proof-slot"><i class="fa-regular fa-image"></i>Print / Vídeo 4<br/>1:1</div>
+          </div>
+        </div>
+        <a class="btn btn-cta anim anim-d4" href="#oferta">
+          <i class="fa-solid fa-arrow-up-right-dots"></i>Quero Elevar Meu Valor
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 07 · OFERTA ══════════════════════════════════════ -->
+<section class="offer-sec sec" id="oferta">
+  <div class="wrap">
+    <div class="offer-grid">
+
+      <div class="offer-left">
+        <div class="offer-eyebrow anim">Oferta Irresistível</div>
+        <h2 class="offer-q anim anim-d1">Qual é o preço de continuar perdendo clientes para a <span>concorrência?</span></h2>
+        <p class="offer-lead anim anim-d2">Imagine ter na sua mão o método exato para ditar o seu valor no mercado. Imagine a paz mental de saber exatamente qual cor vai valorizar o rosto da cliente antes mesmo de começar.</p>
+        <p class="offer-lead anim anim-d2">No MAP, você não leva apenas conhecimento solto. <strong>Você leva um sistema empacotado.</strong></p>
+        <div class="offer-receive anim anim-d3">O que você recebe hoje:</div>
+        <div class="offer-items">
+          <div class="offer-item anim">
+            <div class="offer-ico"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="offer-item-body"><strong>Acesso completo aos 3 Dias de Imersão Presencial MAP</strong></div>
+          </div>
+          <div class="offer-item anim anim-d1">
+            <div class="offer-ico"><i class="fa-solid fa-palette"></i></div>
+            <div class="offer-item-body"><strong>Metodologia completa de Análise Cromática e Visagismo para Mechas</strong></div>
+          </div>
+          <div class="offer-item anim anim-d2">
+            <div class="offer-ico"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="offer-item-body"><strong>Estratégias de Posicionamento e Cobrança Premium</strong></div>
+          </div>
+          <div class="offer-item anim anim-d3">
+            <div class="offer-ico"><i class="fa-solid fa-flask-vial"></i></div>
+            <div class="offer-item-body"><strong>Mapas de construção de cor e fórmulas estruturadas</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="price-card anim anim-d2">
+        <div class="price-orig">Valor original da Imersão: <s>R$ 3.797,00</s></div>
+        <div class="price-tag">Condição Especial e Temporária · 10% OFF</div>
+        <div class="price-val">R$ 3.417,30</div>
+        <div class="price-cond">Por apenas</div>
+        <a class="btn btn-cta" href="#" style="width:100%;justify-content:center">
+          <i class="fa-solid fa-pen-nib"></i>Quero Criar Minha Assinatura
+        </a>
+        <div class="price-note">Um investimento que se paga com a fidelização de 2 ou 3 novas clientes de alto padrão.</div>
+        <div class="price-lock">
+          <i class="fa-solid fa-lock"></i>Pagamento 100% seguro
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 08 · GARANTIA ════════════════════════════════════ -->
+<section class="guar-sec sec" id="garantia">
+  <div class="wrap">
+    <div class="guar-inner">
+      <div class="guar-shield anim">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="lbl lbl--center anim">Garantia de Risco Zero</div>
+      <h2 class="guar-title anim anim-d1">Você no controle total.</h2>
+      <p class="guar-body anim anim-d2">Se você acha que esse é <strong>"só mais um cursinho"</strong>, eu assumo o risco por você. Se você acessar os materiais preparatórios, entender a proposta e não entregar o que foi prometido presencialmente, basta enviar um e-mail. <strong>Devolvo 100% do seu dinheiro.</strong> Sem letras miúdas. Sem constrangimento.</p>
+      <div class="guar-pills anim anim-d3">
+        <span class="gpill"><i class="fa-solid fa-check"></i>Sem burocracia</span>
+        <span class="gpill"><i class="fa-solid fa-check"></i>100% do dinheiro de volta</span>
+        <span class="gpill"><i class="fa-solid fa-check"></i>Sem letras miúdas</span>
+      </div>
+      <a class="btn btn-cta anim anim-d4" href="#oferta">
+        <i class="fa-solid fa-lock-open"></i>Garantir Minha Vaga Agora
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 09 · ESCASSEZ ════════════════════════════════════ -->
+<section class="scar-sec sec" id="urgencia">
+  <div class="wrap">
+    <div class="scar-inner">
+      <div class="scar-badge anim">
+        <i class="fa-solid fa-circle"></i>Escassez e Urgência
+      </div>
+      <h2 class="scar-title anim anim-d1">O salão não é feito de paredes.<br/><span>É feito de pessoas.</span></h2>
+      <p class="scar-body anim anim-d2">E para garantir que você viva cada processo, etapa e técnica de forma profunda durante os 3 dias, as vagas são <strong>rigorosamente limitadas pela capacidade do espaço físico.</strong></p>
+      <p class="scar-body anim anim-d2">Quando as cadeiras forem preenchidas, o link será desativado. Se você fechar esta página agora, amanhã voltará para o salão para cometer os mesmos erros, <strong>baixar o seu preço</strong> e atender a mesma cliente que não te valoriza.</p>
+      <div class="vagas-row anim anim-d3">
+        <div class="vaga x"></div><div class="vaga x"></div><div class="vaga x"></div>
+        <div class="vaga x"></div><div class="vaga x"></div><div class="vaga x"></div>
+        <div class="vaga x"></div><div class="vaga x"></div><div class="vaga x"></div>
+        <div class="vaga o"></div><div class="vaga o"></div><div class="vaga o"></div>
+      </div>
+      <div class="vagas-lbl anim anim-d3">Vagas limitadas pela capacidade do espaço físico</div>
+      <a class="btn btn-cta btn-cta-lg anim anim-d4" href="#oferta">
+        <i class="fa-solid fa-bolt"></i>Garantir Minha Vaga Agora
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 10 · CTA FINAL ═══════════════════════════════════ -->
+<section class="final-sec sec" id="final">
+  <div class="wrap">
+    <div class="final-inner">
+      <div class="final-eyebrow anim">CTA Final</div>
+      <h2 class="final-title anim anim-d1"><strong>A decisão é simples.</strong> Você quer continuar sendo comparada pelo preço ou quer se tornar a profissional que a cliente deseja, independentemente de quanto custa?</h2>
+      <p class="final-body anim anim-d2">A cliente que sentar na sua cadeira na próxima semana merece ser vista de verdade. E você merece cobrar o que é justo por isso.</p>
+      <p class="final-body2 anim anim-d2">Aperte o botão abaixo e crie a sua assinatura.</p>
+      <a class="final-btn anim anim-d3" href="#oferta">
+        <i class="fa-solid fa-arrow-up-right-dots"></i>Quero Elevar Meu Valor
+      </a>
+      <div class="final-cta-note anim anim-d4">
+        <i class="fa-solid fa-lock"></i>Pagamento seguro · Garantia de risco zero
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-logo"><span>MAP</span> · Alessandra Salucci</div>
+    <div class="footer-div"></div>
+    <div class="footer-txt">
+      MAP — Método de Alta Performance · Imersão Presencial de 3 Dias<br/>
+      © 2025 Alessandra Salucci · Todos os direitos reservados
+    </div>
+  </div>
+</footer>
+
+
+<script>
+(function(){
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
+    });
+  },{threshold:.10,rootMargin:'0px 0px -24px 0px'});
+  document.querySelectorAll('.anim').forEach(el=>io.observe(el));
+})();
+</script>
+</body>
+</html>
